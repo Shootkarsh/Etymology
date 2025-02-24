@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latin Word Origins Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .background-animation {
+            position: fixed;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            z-index: -2;
+            background: linear-gradient(
+                45deg,
+                #f8f8f8 0%,
+                #f5f5f5 25%,
+                #EEE4E1 50%,
+                #E7D8C9 75%,
+                #f8f8f8 100%
+            );
+            background-size: 400% 400%;
+            animation: gradientBG 20s ease infinite;
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center;
+            will-change: transform;
+            mask-image: radial-gradient(
+                circle at center,
+                rgba(0, 0, 0, 0.85) 0%,
+                rgba(0, 0, 0, 0.7) 40%,
+                rgba(0, 0, 0, 0.4) 70%,
+                rgba(0, 0, 0, 0) 100%
+            );
+            -webkit-mask-image: radial-gradient(
+                circle at center,
+                rgba(0, 0, 0, 0.85) 0%,
+                rgba(0, 0, 0, 0.7) 40%,
+                rgba(0, 0, 0, 0.4) 70%,
+                rgba(0, 0, 0, 0) 100%
+            );
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50% }
+            33% { background-position: 50% 25% }
+            50% { background-position: 100% 50% }
+            67% { background-position: 50% 75% }
+            100% { background-position: 0% 50% }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            color: #B2967D;
+            font-size: 3rem;
+            margin: 2rem 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-container {
+            position: relative;
+            z-index: 11;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            padding: 1rem 2rem;
+            width: 100%;
+            max-width: 600px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            cursor: text;
+            backdrop-filter: blur(5px);
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .words-grid {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem;
+            padding: 0 2rem;
+            margin-top: 2rem;
+        }
+
+        .word-card {
+            background: rgba(255,255,255,0.9);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(178,150,125,0.15);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .latin-root {
+            color: #B2967D;
+            font-style: italic;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .root-meaning {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .example-words {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .example-word {
+            display: inline-block;
+            margin: 0.3rem;
+            padding: 0.5rem 1rem;
+            background: #E7D8C9;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .example-word:hover {
+            background: #B2967D;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #B2967D;
+        }
+
+        .word-breakdown {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #EEE4E1;
+            border-radius: 10px;
+        }
+
+        .root-details {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .related-words {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .related-word {
+            padding: 0.5rem 1rem;
+            background: #f5f5f5;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .related-word:hover {
+            background: #B2967D;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .breakdown-item {
+            display: flex;
+            align-items: center;
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: rgba(238,228,225,0.5);
+            border-radius: 5px;
+        }
+
+        .breakdown-item .part {
+            font-weight: bold;
+            color: #B2967D;
+            min-width: 80px;
+        }
+
+        .breakdown-item .separator {
+            margin: 0 0.5rem;
+            color: #999;
+            font-weight: bold;
+        }
+
+        .breakdown-item .meaning {
+            color: #666;
+            font-style: italic;
+        }
+
+        .floating-words {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            font-family: 'Times New Roman', serif;
+        }
+
+        .floating-word {
+            position: absolute;
+            font-size: 0.9rem;
+            color: #666;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 8px 16px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(4px);
+            animation: float 20s linear infinite;
+            transition: all 0.3s ease;
+        }
+
+        .floating-word.highlight {
+            background: rgba(255, 255, 255, 0.9);
+            color: #B2967D;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(178, 150, 125, 0.2);
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(-50px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.2;
+            }
+            45% {
+                opacity: var(--opacity, 0.2);
+                transform: translateY(50vh) translateX(50px) rotate(180deg);
+            }
+            90% {
+                opacity: 0.2;
+            }
+            100% {
+                transform: translateY(-100px) translateX(-20px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .ripple {
+            position: fixed;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple-effect 1.2s ease-out;
+            background: rgba(178,150,125,0.05);
+            filter: blur(4px);
+            pointer-events: none;
+        }
+
+        @keyframes ripple-effect {
+            to {
+                transform: scale(6);
+                opacity: 0;
+            }
+        }
+
+        /* 3D Header Animation */
+        .header-3d-container {
+            position: relative;
+            height: 300px;
+            perspective: 1000px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .header-3d-content {
+            position: relative;
+            transform-style: preserve-3d;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.2s ease-out;
+        }
+
+        .floating-letter {
+            position: absolute;
+            font-size: 1.2rem;
+            color: rgba(178,150,125,0.2);
+            transform-style: preserve-3d;
+            transition: transform 0.2s ease-out;
+        }
+
+        .header-title {
+            text-align: center;
+            width: 100%;
+            min-height: 40vh;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+            padding: 2rem 0;
+        }
+
+        .header-title h1 {
+            font-size: 5rem;
+            margin-bottom: 3rem;
+            color: #B2967D;
+            text-shadow: 2px 2px 15px rgba(255,255,255,0.8);
+        }
+
+        /* Add a subtle overlay for center emphasis */
+        .background-animation::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                circle at center,
+                rgba(255, 255, 255, 0.1) 0%,
+                transparent 70%
+            );
+            pointer-events: none;
+        }
+
+        /* Add smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .content-wrapper {
+            position: relative;
+            z-index: 10;
+            margin-top: 0;
+            min-height: 100vh;
+            background: transparent;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #B2967D;
+            font-size: 1.2rem;
+            padding: 2rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .no-results.visible {
+            opacity: 1;
+        }
+
+        .content-wrapper.searching {
+            margin-top: 2rem;
+        }
+
+        /* Add styles for search overlay */
+        .search-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(2px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .search-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+    </style>
+    <script src="word-roots.js" defer></script>
+</head>
+<body>
+    <div class="background-animation"></div>
+    
+    <div class="container">
+        <div class="header-title">
+            <h1>Etymology</h1>
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search for a word...">
+            </div>
+        </div>
+        <div class="content-wrapper">
+            <div class="words-grid">
+                <!-- Words will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 class="word-title"></h2>
+            <div class="word-breakdown"></div>
+            <div class="root-details"></div>
+            <div class="related-words"></div>
+        </div>
+    </div>
+
+    <div class="floating-words"></div>
+
+    <script>
+        const latinRootDatabase = {
+            'port': {
+                meaning: 'to carry',
+                examples: ['transport', 'portable', 'export', 'import'],
+                usage: 'Indicates movement or carrying'
+            },
+            'dict': {
+                meaning: 'to say, to speak',
+                examples: ['dictate', 'predict', 'dictionary', 'contradict'],
+                usage: 'Related to speaking or words'
+            },
+            'scrib': {
+                meaning: 'to write',
+                examples: ['describe', 'prescribe', 'inscription', 'manuscript'],
+                usage: 'Connected to writing'
+            },
+            'spec': {
+                meaning: 'to look, to see',
+                examples: ['spectacle', 'inspect', 'perspective', 'specimen'],
+                usage: 'Related to seeing or observation'
+            },
+            'anthrop': {
+                meaning: 'human, mankind',
+                examples: ['anthropology', 'anthropomorphic', 'misanthrope', 'philanthropy'],
+                usage: 'Related to humans or human characteristics'
+            },
+            'vert': {
+                meaning: 'to turn',
+                examples: ['introvert', 'extrovert', 'convert', 'revert'],
+                usage: 'Related to turning or changing direction'
+            },
+            'mis': {
+                meaning: 'to hate, wrong',
+                examples: ['misanthrope', 'misogynist', 'mistake', 'misfortune'],
+                usage: 'Related to wrong or hatred'
+            },
+            'audi': {
+                meaning: 'to hear',
+                examples: ['audible', 'audience', 'auditory', 'auditorium'],
+                usage: 'Related to hearing or sound'
+            },
+            'auto': {
+                meaning: 'self',
+                examples: ['automatic', 'automobile', 'autonomous', 'autobiography'],
+                usage: 'Related to self or by oneself'
+            },
+            'bene': {
+                meaning: 'good, well',
+                examples: ['benefit', 'benevolent', 'beneficial', 'benefactor'],
+                usage: 'Indicates goodness or doing well'
+            },
+            'bio': {
+                meaning: 'life',
+                examples: ['biology', 'biography', 'biosphere', 'biodiversity'],
+                usage: 'Related to life or living things'
+            },
+            'chrono': {
+                meaning: 'time',
+                examples: ['chronology', 'chronic', 'chronicle', 'synchronize'],
+                usage: 'Related to time'
+            },
+            'duc/duct': {
+                meaning: 'to lead, to pull',
+                examples: ['conduct', 'produce', 'reduce', 'deduce'],
+                usage: 'Related to leading or bringing'
+            },
+            'geo': {
+                meaning: 'earth',
+                examples: ['geography', 'geology', 'geometry', 'geothermal'],
+                usage: 'Related to earth or ground'
+            },
+            'graph': {
+                meaning: 'to write',
+                examples: ['photograph', 'biography', 'geography', 'autograph'],
+                usage: 'Related to writing or recording'
+            },
+            // Directional Roots
+            'amb': {
+                meaning: 'around, both',
+                examples: ['ambient', 'ambiguous', 'ambidextrous', 'ambulance'],
+                usage: 'Related to surrounding or both sides'
+            },
+            'circum': {
+                meaning: 'around',
+                examples: ['circumference', 'circumstance', 'circumvent', 'circumnavigate'],
+                usage: 'Related to movement around something'
+            },
+            'contra/counter': {
+                meaning: 'against, opposite',
+                examples: ['contradict', 'contrary', 'counteract', 'counterpart'],
+                usage: 'Indicates opposition or contrast'
+            },
+            'dextr/dexter': {
+                meaning: 'right (direction)',
+                examples: ['dexterous', 'ambidextrous', 'dexterity'],
+                usage: 'Related to right side or skillfulness'
+            },
+            'ex/e': {
+                meaning: 'out of, from, former',
+                examples: ['exit', 'export', 'extract', 'exhale'],
+                usage: 'Movement outward or removal'
+            },
+            'in/im': {
+                meaning: 'in, into, not',
+                examples: ['insert', 'import', 'inhale', 'internal'],
+                usage: 'Movement inward or negation'
+            },
+            'inter': {
+                meaning: 'between, among',
+                examples: ['international', 'interact', 'interrupt', 'intervene'],
+                usage: 'Position or action between things'
+            },
+            'para': {
+                meaning: 'beside, beyond',
+                examples: ['parallel', 'paragraph', 'paramedic', 'paranormal'],
+                usage: 'Alongside or beyond normal'
+            },
+            'peri': {
+                meaning: 'around',
+                examples: ['perimeter', 'peripheral', 'periscope', 'period'],
+                usage: 'Around or enclosing'
+            },
+            'retro': {
+                meaning: 'backward, behind',
+                examples: ['retroactive', 'retrospect', 'retrograde', 'retrovirus'],
+                usage: 'Moving backward or relating to the past'
+            },
+            'sub': {
+                meaning: 'under, below',
+                examples: ['submarine', 'submerge', 'subway', 'subtract'],
+                usage: 'Position beneath or less than'
+            },
+            'super/sur': {
+                meaning: 'over, above, beyond',
+                examples: ['superior', 'supernatural', 'surface', 'surpass'],
+                usage: 'Position above or exceeding'
+            },
+            'trans': {
+                meaning: 'across, through, beyond',
+                examples: ['transport', 'transform', 'translate', 'transparent'],
+                usage: 'Movement across or change'
+            },
+            // Number roots
+            'uni': {
+                meaning: 'one',
+                examples: ['uniform', 'unique', 'unite', 'universe'],
+                usage: 'Related to one or single'
+            },
+            'bi': {
+                meaning: 'two',
+                examples: ['bicycle', 'bilateral', 'binary', 'bilingual'],
+                usage: 'Related to two or pairs'
+            },
+            'tri': {
+                meaning: 'three',
+                examples: ['triangle', 'trilogy', 'tripod', 'triple'],
+                usage: 'Related to three'
+            },
+            'quad': {
+                meaning: 'four',
+                examples: ['quadrilateral', 'quadruple', 'quadrant', 'quadriplegia'],
+                usage: 'Related to four'
+            },
+            // Common prefixes
+            'pre': {
+                meaning: 'before',
+                examples: ['predict', 'prepare', 'prevent', 'prefix'],
+                usage: 'Before in time or place'
+            },
+            'post': {
+                meaning: 'after',
+                examples: ['postpone', 'postwar', 'postscript', 'posterior'],
+                usage: 'After in time or place'
+            },
+            're': {
+                meaning: 'again, back',
+                examples: ['return', 'repeat', 'rewrite', 'reverse'],
+                usage: 'Again or backward'
+            }
+        };
+
+        const wordDatabase = {
+            'transport': {
+                roots: ['trans (across)', 'port (to carry)'],
+                meaning: 'to carry across or move from one place to another',
+                breakdown: {
+                    'trans': 'across',
+                    'port': 'to carry'
+                }
+            },
+            'quadriplegia': {
+                roots: ['quadri (four)', 'plegia (paralysis)'],
+                meaning: 'paralysis of all four limbs',
+                breakdown: {
+                    'quadri': 'four',
+                    'plegia': 'paralysis'
+                }
+            },
+            'quadrilateral': {
+                roots: ['quadri (four)', 'later (side)', 'al (relating to)'],
+                meaning: 'a shape with four sides',
+                breakdown: {
+                    'quadri': 'four',
+                    'later': 'side',
+                    'al': 'relating to'
+                }
+            },
+            'quadruple': {
+                roots: ['quad (four)', 'uple (times)'],
+                meaning: 'four times as much or as many',
+                breakdown: {
+                    'quad': 'four',
+                    'uple': 'times'
+                }
+            },
+            'geology': {
+                roots: ['geo (earth)', 'logy (study of)'],
+                meaning: 'the study of earth\'s physical structure and substance',
+                breakdown: {
+                    'geo': 'earth',
+                    'logy': 'study of'
+                }
+            },
+            'geometry': {
+                roots: ['geo (earth)', 'metry (measure)'],
+                meaning: 'the study of shapes and spatial relationships',
+                breakdown: {
+                    'geo': 'earth',
+                    'metry': 'measure'
+                }
+            },
+            'chronology': {
+                roots: ['chrono (time)', 'logy (study of)'],
+                meaning: 'the arrangement of events in order of occurrence',
+                breakdown: {
+                    'chrono': 'time',
+                    'logy': 'study of'
+                }
+            },
+            'chronicle': {
+                roots: ['chron (time)', 'icle (relating to)'],
+                meaning: 'a record of events in order of time',
+                breakdown: {
+                    'chron': 'time',
+                    'icle': 'relating to'
+                }
+            },
+            'biology': {
+                roots: ['bio (life)', 'logy (study of)'],
+                meaning: 'the study of living organisms',
+                breakdown: {
+                    'bio': 'life',
+                    'logy': 'study of'
+                }
+            },
+            'biosphere': {
+                roots: ['bio (life)', 'sphere (globe/region)'],
+                meaning: 'regions of Earth where life exists',
+                breakdown: {
+                    'bio': 'life',
+                    'sphere': 'globe/region'
+                }
+            },
+            'misogynist': {
+                roots: ['mis (hate)', 'gyn (woman)', 'ist (person)'],
+                meaning: 'person who hates or is prejudiced against women',
+                breakdown: {
+                    'mis': 'hate',
+                    'gyn': 'woman',
+                    'ist': 'person who'
+                }
+            },
+            'philanthropy': {
+                roots: ['phil (love)', 'anthrop (human)', 'y (practice/state)'],
+                meaning: 'love of humanity; helping others',
+                breakdown: {
+                    'phil': 'love',
+                    'anthrop': 'human',
+                    'y': 'practice/state'
+                }
+            },
+            'anthropomorphic': {
+                roots: ['anthrop (human)', 'morph (form)', 'ic (relating to)'],
+                meaning: 'having human characteristics',
+                breakdown: {
+                    'anthrop': 'human',
+                    'morph': 'form',
+                    'ic': 'relating to'
+                }
+            },
+            'dictate': {
+                roots: ['dict (to say)', 'ate (verb form)'],
+                meaning: 'to say or express with authority',
+                breakdown: {
+                    'dict': 'to say',
+                    'ate': 'makes it a verb'
+                }
+            },
+            'anthropology': {
+                roots: ['anthrop (human)', 'ology (study of)'],
+                meaning: 'the study of human societies and cultures',
+                breakdown: {
+                    'anthrop': 'human',
+                    'ology': 'study of'
+                }
+            },
+            'misanthrope': {
+                roots: ['mis (hate)', 'anthrop (human)'],
+                meaning: 'a person who dislikes humankind',
+                breakdown: {
+                    'mis': 'hate',
+                    'anthrop': 'human'
+                }
+            },
+            'introvert': {
+                roots: ['intro (inward)', 'vert (to turn)'],
+                meaning: 'person who directs energy inward',
+                breakdown: {
+                    'intro': 'inward',
+                    'vert': 'to turn'
+                }
+            },
+            'extrovert': {
+                roots: ['extro (outward)', 'vert (to turn)'],
+                meaning: 'person who directs energy outward',
+                breakdown: {
+                    'extro': 'outward',
+                    'vert': 'to turn'
+                }
+            },
+            'audible': {
+                roots: ['audi (hear)', 'ible (able to be)'],
+                meaning: 'able to be heard',
+                breakdown: {
+                    'audi': 'hear',
+                    'ible': 'able to be'
+                }
+            },
+            'autobiography': {
+                roots: ['auto (self)', 'bio (life)', 'graph (write)'],
+                meaning: 'written account of one\'s own life',
+                breakdown: {
+                    'auto': 'self',
+                    'bio': 'life',
+                    'graph': 'write'
+                }
+            },
+            'ambidextrous': {
+                roots: ['ambi (both)', 'dextr (right hand/skill)'],
+                meaning: 'able to use both hands equally well',
+                breakdown: {
+                    'ambi': 'both',
+                    'dextr': 'right hand/skill'
+                }
+            },
+            'circumnavigate': {
+                roots: ['circum (around)', 'navig (sail)', 'ate (verb form)'],
+                meaning: 'to sail or travel all the way around something',
+                breakdown: {
+                    'circum': 'around',
+                    'navig': 'sail',
+                    'ate': 'verb form'
+                }
+            },
+            'international': {
+                roots: ['inter (between)', 'nation (country)', 'al (relating to)'],
+                meaning: 'existing or occurring between nations',
+                breakdown: {
+                    'inter': 'between',
+                    'nation': 'country',
+                    'al': 'relating to'
+                }
+            },
+            'submarine': {
+                roots: ['sub (under)', 'marine (sea)'],
+                meaning: 'vessel that can operate underwater',
+                breakdown: {
+                    'sub': 'under',
+                    'marine': 'sea'
+                }
+            },
+            'uniform': {
+                roots: ['uni (one)', 'form (shape)'],
+                meaning: 'staying the same throughout; consistent form',
+                breakdown: {
+                    'uni': 'one',
+                    'form': 'shape'
+                }
+            },
+            'bicycle': {
+                roots: ['bi (two)', 'cycle (wheel)'],
+                meaning: 'two-wheeled vehicle',
+                breakdown: {
+                    'bi': 'two',
+                    'cycle': 'wheel'
+                }
+            },
+            'triangle': {
+                roots: ['tri (three)', 'angle (corner)'],
+                meaning: 'three-sided shape',
+                breakdown: {
+                    'tri': 'three',
+                    'angle': 'corner'
+                }
+            },
+            'predict': {
+                roots: ['pre (before)', 'dict (say)'],
+                meaning: 'to say something will happen before it does',
+                breakdown: {
+                    'pre': 'before',
+                    'dict': 'say'
+                }
+            }
+        };
+
+        function createWordCards() {
+            const wordsGrid = document.querySelector('.words-grid');
+            wordsGrid.innerHTML = ''; // Clear existing cards
+            
+            Object.entries(latinRootDatabase).forEach(([root, data], index) => {
+                const card = document.createElement('div');
+                card.className = 'word-card';
+                card.innerHTML = `
+                    <h3 class="latin-root">${root}</h3>
+                    <p class="root-meaning">${data.meaning}</p>
+                    <div class="example-words">
+                        ${data.examples.map(example => 
+                            `<span class="example-word" onclick="showWordDetails('${example}')">${example}</span>`
+                        ).join('')}
+                    </div>
+                `;
+                wordsGrid.appendChild(card);
+            });
+        }
+
+        function showWordDetails(word) {
+            const modal = document.querySelector('.modal');
+            const modalContent = modal.querySelector('.modal-content');
+            const wordData = wordDatabase[word];
+
+            if (!wordData) {
+                modalContent.querySelector('.word-title').textContent = word;
+                modalContent.querySelector('.word-breakdown').innerHTML = `
+                    <div class="breakdown-item">
+                        <p>This word's detailed breakdown is coming soon!</p>
+                        <p>Click another example to see its breakdown.</p>
+                    </div>`;
+                modalContent.querySelector('.related-words').innerHTML = '';
+                modal.style.display = 'flex';
+                return;
+            }
+
+            modalContent.querySelector('.word-title').textContent = word;
+            
+            // Show word breakdown
+            const breakdownHtml = `
+                <h3>Word Breakdown:</h3>
+                ${Object.entries(wordData.breakdown).map(([part, meaning]) => `
+                    <div class="breakdown-item">
+                        <span class="part">${part}</span>
+                        <span class="separator">-</span>
+                        <span class="meaning">${meaning}</span>
+                    </div>
+                `).join('')}
+                <p><em>Complete meaning</em>: ${wordData.meaning}</p>
+            `;
+            modalContent.querySelector('.word-breakdown').innerHTML = breakdownHtml;
+
+            // Show related words using the same roots
+            const relatedWords = findRelatedWords(wordData.roots);
+            const relatedHtml = `
+                <h3>Related Words:</h3>
+                <div class="related-words">
+                    ${relatedWords.map(related => 
+                        `<span class="example-word" onclick="showWordDetails('${related}')">${related}</span>`
+                    ).join('')}
+                </div>
+            `;
+            modalContent.querySelector('.related-words').innerHTML = relatedHtml;
+
+            modal.style.display = 'flex';
+        }
+
+        function findRelatedWords(roots) {
+            const relatedWords = new Set();
+            const rootWords = roots.map(root => root.split(' ')[0].toLowerCase());
+            
+            Object.entries(wordDatabase).forEach(([word, data]) => {
+                const wordRoots = data.roots.map(root => root.split(' ')[0].toLowerCase());
+                if (wordRoots.some(root => rootWords.includes(root))) {
+                    relatedWords.add(word);
+                }
+            });
+
+            return Array.from(relatedWords);
+        }
+
+        // Close modal when clicking outside
+        document.querySelector('.modal').addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+            }
+        });
+
+        // Close modal when clicking the close button
+        document.querySelector('.close-modal').addEventListener('click', () => {
+            document.querySelector('.modal').style.display = 'none';
+        });
+
+        // Update the search behavior
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchContainer = document.querySelector('.search-container');
+            const searchInput = document.querySelector('.search-input');
+            const contentWrapper = document.querySelector('.content-wrapper');
+            
+            // Add no results message
+            const noResults = document.createElement('div');
+            noResults.className = 'no-results';
+            noResults.textContent = 'No results found';
+            contentWrapper.insertBefore(noResults, contentWrapper.firstChild);
+
+            // Handle keyboard events
+            document.addEventListener('keydown', (e) => {
+                // Show search on any letter key press
+                if (!searchInput.matches(':focus') && e.key.length === 1 && e.key.match(/[a-z]/i)) {
+                    searchInput.focus();
+                    // Let the normal keypress event handle the input
+                    return;
+                }
+            });
+
+            // Handle search input
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const cards = document.querySelectorAll('.word-card');
+                let hasResults = false;
+                
+                cards.forEach(card => {
+                    const word = card.querySelector('.latin-root').textContent.toLowerCase();
+                    const examples = Array.from(card.querySelectorAll('.example-word'))
+                        .map(ex => ex.textContent.toLowerCase());
+                    if (word.includes(searchTerm) || examples.some(ex => ex.includes(searchTerm))) {
+                        card.style.display = 'block';
+                        hasResults = true;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                // Show/hide no results message
+                noResults.classList.toggle('visible', !hasResults && searchTerm.length > 0);
+            });
+        });
+
+        // Initialize the word cards
+        document.addEventListener('DOMContentLoaded', () => {
+            createWordCards();
+        });
+
+        // Create floating words
+        function createFloatingWords() {
+            const words = [
+                'etymology', 'roots', 'origin', 'meaning', 'language',
+                'words', 'greek', 'latin', 'prefix', 'suffix',
+                'morphology', 'syntax', 'semantics', 'phonology',
+                'Vue.js', 'React', 'Node.js', 'Python', 'JavaScript',
+                'Web3', 'AI', 'Machine Learning', 'Blockchain'
+            ];
+            const container = document.querySelector('.floating-words');
+            
+            function createWord() {
+                // Create two words simultaneously
+                createSingleWord('left');
+                createSingleWord('right');
+            }
+
+            function createSingleWord(side) {
+                const word = document.createElement('div');
+                word.className = 'floating-word';
+                word.textContent = words[Math.floor(Math.random() * words.length)];
+                
+                // Random opacity based on position and chance
+                const baseOpacity = Math.random() * 0.3 + 0.1; // Between 0.1 and 0.4
+                word.style.opacity = baseOpacity.toString();
+                
+                // Randomly highlight some words with higher opacity
+                if (Math.random() > 0.7) {
+                    word.classList.add('highlight');
+                    word.style.opacity = (baseOpacity + 0.3).toString(); // Higher opacity for highlights
+                }
+                
+                // Position based on side with some overlap
+                const startX = side === 'left' ? 
+                    Math.random() * 45 : // 0-45% for left side
+                    55 + Math.random() * 45; // 55-100% for right side
+                
+                word.style.left = `${startX}vw`;
+                
+                // More varied animation duration
+                word.style.animationDuration = (12 + Math.random() * 24) + 's';
+                
+                // Random size variation
+                const scale = 0.7 + Math.random() * 0.6; // Between 0.7 and 1.3
+                word.style.transform = `scale(${scale})`;
+                
+                container.appendChild(word);
+                
+                // Remove word after animation
+                setTimeout(() => word.remove(), parseInt(word.style.animationDuration) * 1000);
+            }
+
+            // Create more initial words for a fuller effect
+            for (let i = 0; i < 12; i++) {
+                setTimeout(createWord, i * 800);
+            }
+            
+            // Adjust interval for continuous creation
+            setInterval(createWord, 2500);
+        }
+
+        // Add ripple effect
+        function createRipple(event) {
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            document.body.appendChild(ripple);
+            
+            const rect = event.target.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = event.clientX - size/2 + 'px';
+            ripple.style.top = event.clientY - size/2 + 'px';
+            
+            ripple.addEventListener('animationend', () => ripple.remove());
+        }
+
+        // Subtle background movement
+        function moveBackground(event) {
+            const background = document.querySelector('.background-animation');
+            
+            // Get mouse position relative to window center
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            
+            // Calculate distance from center (normalized)
+            const distanceX = (mouseX - centerX) / centerX;
+            const distanceY = (mouseY - centerY) / centerY;
+            
+            // Smooth movement with requestAnimationFrame
+            requestAnimationFrame(() => {
+                const moveX = distanceX * 15;
+                const moveY = distanceY * 15;
+                
+                // Update mask position slightly to maintain center focus
+                background.style.maskImage = `radial-gradient(
+                    circle at ${50 + distanceX * 2}% ${50 + distanceY * 2}%,
+                    rgba(0, 0, 0, 0.85) 0%,
+                    rgba(0, 0, 0, 0.7) 40%,
+                    rgba(0, 0, 0, 0.4) 70%,
+                    rgba(0, 0, 0, 0) 100%
+                )`;
+                background.style.webkitMaskImage = background.style.maskImage;
+                
+                background.style.transform = `translate3d(${moveX}px, ${moveY}px, 0) scale(1.05)`;
+            });
+        }
+
+        // Add this to reduce calculations when moving mouse
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Initialize animations
+        document.addEventListener('DOMContentLoaded', () => {
+            createFloatingWords();
+            document.addEventListener('click', createRipple);
+            document.addEventListener('mousemove', debounce(moveBackground, 5));
+        });
+    </script>
+</body>
+</html>
